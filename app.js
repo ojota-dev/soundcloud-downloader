@@ -16,7 +16,11 @@ function getStr(str, start, end) {
 }
 app.set('view engine', 'ejs');
 app.engine('ejs', require('ejs').__express);
-app.get('/downloader', async function (req, res) {
+app.get('/downloader', async function (req, res) { 
+const dir = __dirname+'\\download\\';
+const seconds = 5;
+const sleep = seconds => new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    let format = 'mp3'
     const getTrack = async function () {
         var url = req.query.url;
         var clientID = "6862b458caa60ca20447985771260f7b";
@@ -62,10 +66,26 @@ app.get('/downloader', async function (req, res) {
                 return  res.json({ error: `Ocorreu um erro ao efetuar o download da faixa`})
                } else {    
                 var myVar = downloadlink;
-                console.log({ success: 'Download bem sucedido!'})
-               return res.json({ status: 'true', success: `Download bem sucedido!` ,titulo: `${titulo}`,  usuario: `${username}`, link: `${downloadlink}`, dev: `Jota`, git: `https://github.com/ojota-dev` })
-            }
-        }            
+                var urlmsc = downloadlink;
+                var fs = require('fs'),
+                request = require('request');        
+                request
+                    .get(downloadlink)
+                    .on('error', function(err) {
+                    })
+                .pipe(fs.createWriteStream(`${dir}${titulo}.mp3`));
+                var arquive =  `${dir}/${titulo}.mp3`
+                await sleep(seconds);   
+                res.status(200)
+                res.download(arquive, (error) => {
+                    if(error) return;
+                  fs.unlink(arquive, () => {
+                    console.log({ success: 'Download bem sucedido!'})
+              });
+                })
+                console.log({ success: 'Download bem sucedido!'})         }
+       }   
+               
       } 
      getTrack()
 });
@@ -73,4 +93,6 @@ app.listen(porta, () => {
     console.clear();
     console.log(`SoundCloud Downloader by Jota | On ${porta}`);
 })
+
+
 
